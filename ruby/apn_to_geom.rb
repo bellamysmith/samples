@@ -10,11 +10,20 @@ csv = CSV.read(url, :headers=>true)
 def get_geom_data_from_api(apn) do
   api_url = "https://data.lacity.org/resource/sa2q-dxtv.json?bpp=#{apn}"
   response = HTTParty.get(api_url)
-  body = JSON.parse(response.body)
-  if body.length > 0
-    geom = body[0]['the_geom']
-  else
-    geom = ''
+  case response.code
+    when 200
+      body = JSON.parse(response.body)
+      if body.length > 0
+        geom = body[0]['the_geom']
+      else
+        geom = ''
+      end
+    when 404
+      puts "lacity api endpoint not found."
+      geom = ''
+    when 500...600
+      puts "lacity API error #{response.code}"
+      geom = ''
   end
   # geom string.....
   gstring = geom.to_s
